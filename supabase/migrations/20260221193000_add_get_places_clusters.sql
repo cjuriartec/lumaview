@@ -1,3 +1,4 @@
+-- RPC get_places_clusters: devuelve clusters o lugares individuales segun zoom y filtros
 create or replace function public.get_places_clusters(
   ne_lat double precision,
   ne_lng double precision,
@@ -8,22 +9,33 @@ create or replace function public.get_places_clusters(
   tag_slugs text[] default null
 )
 returns table (
+  -- tipo de resultado: 'cluster' o 'place'
   type text,
+  -- identificador del cluster o lugar
   id text,
+  -- latitud del punto o centro del cluster
   lat double precision,
+  -- longitud del punto o centro del cluster
   lng double precision,
+  -- numero de lugares dentro del cluster (1 en modo place)
   count integer,
+  -- bbox noreste del cluster (solo en modo cluster)
   bbox_ne_lat double precision,
   bbox_ne_lng double precision,
+  -- bbox suroeste del cluster (solo en modo cluster)
   bbox_sw_lat double precision,
   bbox_sw_lng double precision,
+  -- nombre del lugar (solo en modo place)
   name text,
+  -- slug del tipo de lugar (beach, mountain, etc.)
   place_type text,
+  -- lista de slugs de tags asociados al lugar
   tags text[]
 )
 language plpgsql
 as $$
 declare
+  -- tamano de celda de la grid segun zoom; null significa sin clustering
   cell_size double precision;
 begin
   if zoom is null then
@@ -39,6 +51,7 @@ begin
   end if;
 
   if cell_size is null then
+    -- zoom alto: devolver lugares individuales dentro del bbox
     return query
       with base as (
         select
@@ -95,6 +108,7 @@ begin
         base.tags
       from base;
   else
+    -- zoom bajo/medio: aplicar clustering por grid dentro del bbox
     return query
       with filtered as (
         select
@@ -182,3 +196,27 @@ begin
   end if;
 end;
 $$;
+
+-- exponer el RPC como security definer para controlar acceso solo via la funcion
+alter function public.get_places_clusters(
+  double precision,
+  double precision,
+  double precision,
+  double precision,
+  integer,
+  text[],
+  text[]
+)
+security definer;
+
+-- permitir que los roles HTTP puedan ejecutar el RPC
+grant execute on function public.get_places_clusters(
+  double precision,
+  double precision,
+  double precision,
+  double precision,
+  integer,
+  text[],
+  text[]
+)
+to anon, authenticated;
