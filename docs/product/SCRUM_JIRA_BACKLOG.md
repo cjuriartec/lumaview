@@ -149,6 +149,91 @@ Subtareas sugeridas:
        - Tipo `Cluster` (lat, lng, count, bounds).  
        - Tipo `Lugar` (id, lat, lng, metadata mínima).  
     3. Documentar el contrato (ejemplos de request/response).  
+
+  - Contrato propuesto:
+
+    - Nombre del RPC en Supabase: `get_places_clusters`
+
+    - Request (JSON desde Flutter):
+
+      ```json
+      {
+        "ne": { "lat": 41.5, "lng": 2.5 },
+        "sw": { "lat": 40.0, "lng": 1.0 },
+        "zoom": 8,
+        "maxItems": 500,
+        "filters": {
+          "placeTypes": ["beach", "mountain"],
+          "tags": ["hiking", "family"]
+        }
+      }
+      ```
+
+      - `ne`: esquina noreste del bounding box visible.
+      - `sw`: esquina suroeste del bounding box visible.
+      - `zoom`: nivel de zoom actual del mapa.
+      - `maxItems`: límite de elementos devueltos (protección rendimiento).
+      - `filters.placeTypes`: lista opcional de slugs de `place_types`.
+      - `filters.tags`: lista opcional de slugs de `tags`.
+
+    - Firma prevista del RPC en Postgres (lado Supabase):
+
+      - `get_places_clusters(ne_lat double precision, ne_lng double precision, sw_lat double precision, sw_lng double precision, zoom integer, place_type_slugs text[] default null, tag_slugs text[] default null)`
+
+    - Response (JSON simplificado que verá Flutter):
+
+      ```json
+      [
+        {
+          "type": "cluster",
+          "id": "cluster-41.2-1.7-z8",
+          "lat": 41.2,
+          "lng": 1.7,
+          "count": 37,
+          "bbox": {
+            "ne": { "lat": 41.25, "lng": 1.75 },
+            "sw": { "lat": 41.15, "lng": 1.65 }
+          }
+        },
+        {
+          "type": "place",
+          "id": "f8a1c3b2-9d7e-4a56-8b21-123456789abc",
+          "lat": 41.3874,
+          "lng": 2.1686,
+          "name": "Mirador del Valle",
+          "placeType": "viewpoint",
+          "tags": ["photography", "adventure"]
+        }
+      ]
+      ```
+
+      - `type`: `"cluster"` o `"place"`.
+
+      - Para `cluster`:
+        - `id`: identificador sintético del cluster.
+        - `lat`, `lng`: centro del cluster.
+        - `count`: número de lugares dentro del cluster.
+        - `bbox`: bounds aproximados del cluster (útil para debug/zoom).
+
+      - Para `place`:
+        - `id`: `places.id` (uuid).
+        - `lat`, `lng`: posición del lugar.
+        - `name`: nombre legible del lugar.
+        - `placeType`: slug de `place_types`.
+        - `tags`: lista de slugs de `tags` asociados.
+
+    - Ejemplo de request/response por nivel de zoom:
+
+      - Zoom bajo (p.ej. `zoom = 4`):
+
+        - Request: bbox grande (país/región).
+        - Response: principalmente items `type = "cluster"` con `count` alto.
+
+      - Zoom alto (p.ej. `zoom = 14`):
+
+        - Request: bbox pequeño (ciudad/zona concreta).
+        - Response: principalmente items `type = "place"` (lugares individuales).
+
 - **Acceptance Criteria**:  
   - Documentación clara del request: campos NE, SW, zoom.  
   - Documentación clara del response: lista de elementos donde cada item es Cluster o Lugar.  
