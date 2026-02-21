@@ -1,16 +1,17 @@
-# lumaview
+# Lumaview
 
-A new Flutter project.
+Backend local (Supabase):
 
-## Getting Started
+- Arrancar servicios locales:
 
-This project is a starting point for a Flutter application.
+```bash
+supabase start
+```
 
-A few resources to get you started if this is your first Flutter project:
+- Aplicar migraciones y seeds:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+supabase db reset
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Más detalles en `docs/DEV_BACKEND_SUPABASE.md`.
