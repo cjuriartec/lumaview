@@ -14,4 +14,4 @@ supabase start
 supabase db reset
 ```
 
-Más detalles en `docs/DEV_BACKEND_SUPABASE.md`.
+Más detalles en `docs/dev/DEV_BACKEND_SUPABASE.md`.
