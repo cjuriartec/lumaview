@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lumaview/config/env/env_config.dart';
+import 'package:lumaview/core/theme/app_theme.dart';
+import 'package:lumaview/core/theme/providers/theme_provider.dart';
 import 'package:lumaview/features/map/presentation/pages/map_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -15,16 +17,19 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeModeAsync = ref.watch(themeNotifierProvider);
+    final themeMode = themeModeAsync.asData?.value ?? ThemeMode.system;
+
     return MaterialApp(
       title: 'Lumaview',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: themeMode,
       home: const MapPage(),
     );
   }

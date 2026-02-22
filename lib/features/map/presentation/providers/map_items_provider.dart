@@ -33,8 +33,10 @@ class MapItemsNotifier extends StateNotifier<AsyncValue<List<MapItem>>> {
 
   final Ref _ref;
 
+  /// Carga clusters/lugares para el bbox visible.
+  /// Mantiene los marcadores previos visibles durante la carga para evitar
+  /// parpadeos y transiciones bruscas al hacer zoom o mover el mapa.
   Future<void> loadForBounds(MapBounds bounds) async {
-    state = const AsyncValue.loading();
     try {
       final useCase = _ref.read(getClustersForBoundsProvider);
       final items = await useCase(bounds);

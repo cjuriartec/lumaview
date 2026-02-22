@@ -16,22 +16,33 @@ class MapItemDto {
 
   factory MapItemDto.fromJson(Map<String, dynamic> json) {
     return MapItemDto(
-      type: json['type'] as String,
-      id: json['id'] as String,
-      lat: (json['lat'] as num).toDouble(),
-      lng: (json['lng'] as num).toDouble(),
-      count: (json['count'] as num).toInt(),
-      bboxNeLat: (json['bbox_ne_lat'] as num?)?.toDouble(),
-      bboxNeLng: (json['bbox_ne_lng'] as num?)?.toDouble(),
-      bboxSwLat: (json['bbox_sw_lat'] as num?)?.toDouble(),
-      bboxSwLng: (json['bbox_sw_lng'] as num?)?.toDouble(),
-      name: json['name'] as String?,
-      placeType: json['place_type'] as String?,
-      tags: (json['tags'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
+      type: _string(json['type']) ?? 'place',
+      id: _string(json['id']) ?? '',
+      lat: _numToDouble(json['lat']) ?? 0.0,
+      lng: _numToDouble(json['lng']) ?? 0.0,
+      count: _numToInt(json['count']) ?? 1,
+      bboxNeLat: _numToDouble(json['bbox_ne_lat']),
+      bboxNeLng: _numToDouble(json['bbox_ne_lng']),
+      bboxSwLat: _numToDouble(json['bbox_sw_lat']),
+      bboxSwLng: _numToDouble(json['bbox_sw_lng']),
+      name: _string(json['name']),
+      placeType: _string(json['place_type']),
+      tags: _stringList(json['tags']),
     );
+  }
+
+  static String? _string(dynamic v) =>
+      v == null ? null : (v is String ? v : v.toString());
+
+  static double? _numToDouble(dynamic v) =>
+      v == null ? null : (v is num ? v.toDouble() : double.tryParse('$v'));
+
+  static int? _numToInt(dynamic v) =>
+      v == null ? null : (v is num ? v.toInt() : int.tryParse('$v'));
+
+  static List<String> _stringList(dynamic v) {
+    if (v == null || v is! List) return const [];
+    return v.map((e) => '$e').toList();
   }
 
   final String type;
