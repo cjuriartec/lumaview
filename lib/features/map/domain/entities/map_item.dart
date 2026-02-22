@@ -17,6 +17,7 @@ class MapItem {
     this.name,
     this.placeType,
     this.tags = const [],
+    this.primaryImageUrl,
   });
 
   final MapItemType type;
@@ -31,5 +32,5 @@ class MapItem {
   final String? name;
   final String? placeType;
   final List<String> tags;
+  final String? primaryImageUrl;
 }
-

@@ -12,6 +12,7 @@ class MapItemDto {
     this.name,
     this.placeType,
     this.tags = const [],
+    this.imageUrl,
   });
 
   factory MapItemDto.fromJson(Map<String, dynamic> json) {
@@ -28,6 +29,7 @@ class MapItemDto {
       name: _string(json['name']),
       placeType: _string(json['place_type']),
       tags: _stringList(json['tags']),
+      imageUrl: _string(json['image_url']),
     );
   }
 
@@ -57,5 +59,5 @@ class MapItemDto {
   final String? name;
   final String? placeType;
   final List<String> tags;
+  final String? imageUrl;
 }
-

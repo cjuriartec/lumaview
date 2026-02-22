@@ -9,6 +9,7 @@ import 'package:lumaview/features/map/domain/entities/map_bounds.dart';
 import 'package:lumaview/features/map/domain/entities/map_item.dart';
 import 'package:lumaview/features/map/presentation/providers/map_items_provider.dart';
 import 'package:lumaview/features/map/presentation/utils/map_marker_utils.dart';
+import 'package:lumaview/features/place/presentation/pages/place_detail_page.dart';
 
 class MapPage extends ConsumerStatefulWidget {
   const MapPage({super.key});
@@ -97,27 +98,34 @@ class MapPageState extends ConsumerState<MapPage> {
     return true;
   }
 
+  Future<BitmapDescriptor> _buildPlaceIcon(MapItem item, bool isDark) async {
+    final url = item.primaryImageUrl;
+    if (url != null && url.isNotEmpty) {
+      return MapMarkerUtils.placePhotoDescriptor(isDark: isDark, imageUrl: url);
+    }
+    return _placeIcon!;
+  }
+
   Future<void> _buildMarkersAsync(List<MapItem> items) async {
     if (!_iconsReady || _placeIcon == null) return;
     final isDark = ThemeUtils.isDark(context);
 
     final markers = <Marker>{};
     for (final item in items) {
-      final icon = item.type == MapItemType.cluster
+      final isCluster = item.type == MapItemType.cluster;
+      final icon = isCluster
           ? await MapMarkerUtils.clusterDescriptor(
               count: item.count,
               isDark: isDark,
             )
-          : _placeIcon!;
-
-      final isCluster = item.type == MapItemType.cluster;
+          : await _buildPlaceIcon(item, isDark);
       markers.add(
         Marker(
           markerId: MarkerId(item.id),
           position: LatLng(item.lat, item.lng),
           icon: icon,
           onTap: () => _onMarkerTap(item),
-          anchor: isCluster ? const Offset(0.5, 0.5) : const Offset(0.5, 1.0),
+          anchor: isCluster ? const Offset(0.5, 0.5) : const Offset(0.5, 0.5),
           zIndexInt: isCluster ? 0 : 1,
           infoWindow: InfoWindow(
             title: item.type == MapItemType.cluster
@@ -163,7 +171,7 @@ class MapPageState extends ConsumerState<MapPage> {
               initialCameraPosition: currentCamera,
               myLocationEnabled: false,
               myLocationButtonEnabled: false,
-              style: isDark ? darkMapStyle : null,
+              style: isDark ? darkMapStyle : lightMapStyle,
               onMapCreated: (controller) {
                 if (!controllerCompleter.isCompleted) {
                   controllerCompleter.complete(controller);
@@ -182,8 +190,33 @@ class MapPageState extends ConsumerState<MapPage> {
   }
 
   Future<void> _onMarkerTap(MapItem item) async {
+    if (item.type == MapItemType.place) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (context) => PlaceDetailPage(placeId: item.id),
+        ),
+      );
+      return;
+    }
+
     if (item.type != MapItemType.cluster) return;
     final controller = await controllerCompleter.future;
+
+    // Clusters de un solo elemento: zoom a nivel ciudad
+    if (item.count <= 1) {
+      const double cityZoom = 16.0;
+      final targetZoom = currentCamera.zoom < cityZoom
+          ? cityZoom
+          : currentCamera.zoom;
+      await controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: LatLng(item.lat, item.lng), zoom: targetZoom),
+        ),
+      );
+      return;
+    }
+
     if (item.bboxNeLat != null &&
         item.bboxNeLng != null &&
         item.bboxSwLat != null &&

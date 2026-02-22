@@ -19,7 +19,8 @@ returns table (
   bbox_sw_lng   double precision,
   name          text,
   place_type    text,
-  tags          text[]
+  tags          text[],
+  image_url     text
 )
 language plpgsql
 security definer
@@ -75,7 +76,15 @@ begin
            join tags t2 on t2.id = plt2.tag_id and not t2.deleted
            where plt2.place_id = p.id and not plt2.deleted),
           '{}'::text[]
-        ) as tags
+        ) as tags,
+        (
+          select pi.image_url
+          from place_images pi
+          where pi.place_id = p.id
+            and not pi.deleted
+          order by pi."order" asc, pi.created_at asc
+          limit 1
+        ) as image_url
       from places p
       join place_types pt on pt.id = p.place_type_id and not pt.deleted
       where
@@ -115,7 +124,8 @@ begin
       null::double precision,
       base.name,
       base.place_type,
-      base.tags
+      base.tags,
+      base.image_url
     from base
     order by base.name nulls last;
 
@@ -183,14 +193,15 @@ begin
         min(longitude)::double precision as bbox_sw_lng,
         null::text                       as name,
         null::text                       as place_type,
-        null::text[]                     as tags
+        null::text[]                     as tags,
+        null::text                       as image_url
       from filtered
       group by cell_lat, cell_lng
     )
     select
       c.type, c.id, c.lat, c.lng, c.count,
       c.bbox_ne_lat, c.bbox_ne_lng, c.bbox_sw_lat, c.bbox_sw_lng,
-      c.name, c.place_type, c.tags
+      c.name, c.place_type, c.tags, c.image_url
     from clusters c
     order by c.count desc, c.lat, c.lng;
   end if;

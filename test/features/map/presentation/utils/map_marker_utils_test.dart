@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lumaview/features/map/presentation/utils/map_marker_utils.dart';
 
@@ -42,6 +44,26 @@ void main() {
 
     test('placeDescriptor returns valid descriptor for dark theme', () async {
       final descriptor = await MapMarkerUtils.placeDescriptor(isDark: true);
+      expect(descriptor, isNotNull);
+    });
+
+    test('placeDescriptorWithImage returns valid descriptor with dummy image',
+        () async {
+      const size = 32.0;
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(recorder);
+      final paint = ui.Paint()..color = const ui.Color(0xFFFF0000);
+      canvas.drawRect(
+        const ui.Rect.fromLTWH(0, 0, size, size),
+        paint,
+      );
+      final picture = recorder.endRecording();
+      final image = await picture.toImage(size.toInt(), size.toInt());
+
+      final descriptor = await MapMarkerUtils.placeDescriptorWithImage(
+        isDark: false,
+        image: image,
+      );
       expect(descriptor, isNotNull);
     });
 

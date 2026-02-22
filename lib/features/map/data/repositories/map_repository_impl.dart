@@ -37,9 +37,9 @@ class MapRepositoryImpl implements MapRepository {
             name: dto.name,
             placeType: dto.placeType,
             tags: dto.tags,
+            primaryImageUrl: dto.imageUrl,
           ),
         )
         .toList();
   }
 }
-
