@@ -19,16 +19,20 @@ Más detalles en `docs/dev/DEV_BACKEND_SUPABASE.md`.
 ## IDs de cliente de Google (OAuth)
 
 Para que el login con Google funcione y sea fácil de replicar en otro entorno,
-los OAuth Client ID de Google se usan en varios archivos. Cuando cambies de
-proyecto en Google Cloud o regeneres las credenciales, revisa y actualiza:
+los OAuth Client ID de Google se usan en varios archivos y variables de
+entorno. Cuando cambies de proyecto en Google Cloud o regeneres las
+credenciales, revisa y actualiza:
 
 - Android:
-  - IDs configurables por `--dart-define`:
+  - Variables en `.env` / `.env.example`:
     - `LUMAVIEW_ANDROID_CLIENT_ID`
     - `LUMAVIEW_ANDROID_SERVER_CLIENT_ID`
-  - Se consumen desde las constantes `_androidClientId` y
-    `_androidServerClientId` en  
-    `lib/features/auth/data/repositories/auth_repository_impl.dart`.
+  - Estas variables se pasan a Flutter con `--dart-define` (por ejemplo desde
+    scripts de desarrollo) y se consumen desde las constantes `_androidClientId`
+    y `_androidServerClientId` en  
+    `lib/features/auth/data/repositories/auth_repository_impl.dart` y desde
+    `Env.config` en  
+    `lib/config/env/env_config.dart`.
 - Web:
   - Actualmente el login con Google en web no está habilitado (se lanza una
     excepción en `AuthRepositoryImpl` cuando `kIsWeb`), por lo que no se usa un
@@ -42,10 +46,18 @@ proyecto en Google Cloud o regeneres las credenciales, revisa y actualiza:
 Además, en Supabase debes habilitar el proveedor **Google** y configurar los
 Client ID correspondientes en la sección de autenticación del panel.
 
-Ejemplo de ejecución en desarrollo con IDs propios:
+### Ejecución con `.env` (como en VS Code)
+
+El proyecto está preparado para leer las variables desde `.env` usando
+`--dart-define-from-file=.env`, igual que en
+`.vscode/launch.json`:
+
+- `lumaview (debug)`
+- `lumaview (profile)`
+- `lumaview (release)`
+
+Si quieres lanzar la app desde la terminal, el equivalente es:
 
 ```bash
-flutter run \
-  --dart-define=LUMAVIEW_ANDROID_CLIENT_ID=TU_ANDROID_CLIENT_ID \
-  --dart-define=LUMAVIEW_ANDROID_SERVER_CLIENT_ID=TU_ANDROID_SERVER_CLIENT_ID
+flutter run --dart-define-from-file=.env
 ```
