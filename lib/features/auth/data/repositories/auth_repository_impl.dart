@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:lumaview/config/env/env_config.dart';
 import 'package:lumaview/features/auth/domain/entities/auth_user.dart';
 import 'package:lumaview/features/auth/domain/repository_contracts/auth_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -23,10 +24,8 @@ class AuthRepositoryImpl implements AuthRepository {
     String? serverClientId;
 
     if (defaultTargetPlatform == TargetPlatform.android) {
-      clientId =
-          '646281661021-5rvosqo6idndq7n2p9qai016kgkp5ggq.apps.googleusercontent.com';
-      serverClientId =
-          '646281661021-vqmr5mnsnlihdlm03klg6f4j6cpamb7o.apps.googleusercontent.com';
+      clientId = Env.config.androidClientId;
+      serverClientId = Env.config.serverClientId;
     }
 
     await _googleSignIn.initialize(
