@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lumaview/core/theme/providers/theme_provider.dart';
 import 'package:lumaview/features/auth/presentation/pages/login_page.dart';
 import 'package:lumaview/features/map/presentation/pages/map_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,6 +19,7 @@ class _RootShellPageState extends ConsumerState<RootShellPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
     final mainContent = _currentIndex == 0
         ? const MapPage()
         : const _ProfileScreen();
@@ -37,12 +39,19 @@ class _RootShellPageState extends ConsumerState<RootShellPage> {
                 ),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.black
+                      ? const Color(0xFF1A1A1A)
                       : theme.colorScheme.surface.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.05),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.25),
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.4)
+                          : Colors.black.withValues(alpha: 0.25),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -78,6 +87,109 @@ class _RootShellPageState extends ConsumerState<RootShellPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ThemeToggleButton extends StatelessWidget {
+  const _ThemeToggleButton({
+    required this.themeMode,
+    required this.onModeSelected,
+  });
+
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onModeSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _ThemeModeChip(
+          icon: Icons.light_mode,
+          label: 'Claro',
+          mode: ThemeMode.light,
+          selected: themeMode == ThemeMode.light,
+          onSelected: onModeSelected,
+        ),
+        const SizedBox(width: 8),
+        _ThemeModeChip(
+          icon: Icons.phone_iphone,
+          label: 'Sistema',
+          mode: ThemeMode.system,
+          selected: themeMode == ThemeMode.system,
+          onSelected: onModeSelected,
+        ),
+        const SizedBox(width: 8),
+        _ThemeModeChip(
+          icon: Icons.dark_mode,
+          label: 'Oscuro',
+          mode: ThemeMode.dark,
+          selected: themeMode == ThemeMode.dark,
+          onSelected: onModeSelected,
+        ),
+      ],
+    );
+  }
+}
+
+class _ThemeModeChip extends StatelessWidget {
+  const _ThemeModeChip({
+    required this.icon,
+    required this.label,
+    required this.mode,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final IconData icon;
+  final String label;
+  final ThemeMode mode;
+  final bool selected;
+  final ValueChanged<ThemeMode> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final backgroundColor = selected
+        ? theme.colorScheme.primary.withValues(alpha: 0.08)
+        : Colors.transparent;
+    final borderColor = selected
+        ? theme.colorScheme.primary.withValues(alpha: 0.5)
+        : theme.brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.25)
+        : Colors.black.withValues(alpha: 0.08);
+    final foregroundColor = selected
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurface.withValues(alpha: 0.7);
+
+    return InkWell(
+      onTap: () => onSelected(mode),
+      borderRadius: BorderRadius.circular(999),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: foregroundColor),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: foregroundColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -242,14 +354,14 @@ class _ProfilePanelState extends State<_ProfilePanel> {
   }
 }
 
-class _ProfileScreen extends StatefulWidget {
+class _ProfileScreen extends ConsumerStatefulWidget {
   const _ProfileScreen();
 
   @override
-  State<_ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<_ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<_ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<_ProfileScreen> {
   late final Stream<AuthState> _authStream;
 
   @override
@@ -263,6 +375,8 @@ class _ProfileScreenState extends State<_ProfileScreen> {
     final auth = Supabase.instance.client.auth;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final themeModeState = ref.watch(themeNotifierProvider);
+    final themeMode = themeModeState.asData?.value ?? ThemeMode.system;
 
     return StreamBuilder<AuthState>(
       stream: _authStream,
@@ -349,7 +463,24 @@ class _ProfileScreenState extends State<_ProfileScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _ThemeToggleButton(
+                            themeMode: themeMode,
+                            onModeSelected: (mode) {
+                              ref
+                                  .read(themeNotifierProvider.notifier)
+                                  .setThemeMode(mode);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                     SizedBox(
                       width: 220,
                       child: FilledButton.icon(

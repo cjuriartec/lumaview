@@ -171,6 +171,7 @@ class MapPageState extends ConsumerState<MapPage> {
             child: GoogleMap(
               initialCameraPosition: currentCamera,
               myLocationEnabled: false,
+              zoomControlsEnabled: false,
               myLocationButtonEnabled: false,
               style: kIsWeb ? null : (isDark ? darkMapStyle : lightMapStyle),
               onMapCreated: (controller) {
