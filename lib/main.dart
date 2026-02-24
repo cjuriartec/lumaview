@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lumaview/config/env/env_config.dart';
 import 'package:lumaview/core/theme/app_theme.dart';
 import 'package:lumaview/core/theme/providers/theme_provider.dart';
-import 'package:lumaview/features/map/presentation/pages/map_page.dart';
+import 'package:lumaview/features/shell/presentation/pages/root_shell_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -12,6 +12,9 @@ Future<void> main() async {
   await Supabase.initialize(
     url: Env.config.supabaseUrl,
     anonKey: Env.config.supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.implicit,
+    ),
   );
 
   runApp(const ProviderScope(child: MyApp()));
@@ -30,7 +33,7 @@ class MyApp extends ConsumerWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: themeMode,
-      home: const MapPage(),
+      home: const RootShellPage(),
     );
   }
 }

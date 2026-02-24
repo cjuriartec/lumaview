@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lumaview/core/theme/map_styles.dart';
@@ -171,7 +172,7 @@ class MapPageState extends ConsumerState<MapPage> {
               initialCameraPosition: currentCamera,
               myLocationEnabled: false,
               myLocationButtonEnabled: false,
-              style: isDark ? darkMapStyle : lightMapStyle,
+              style: kIsWeb ? null : (isDark ? darkMapStyle : lightMapStyle),
               onMapCreated: (controller) {
                 if (!controllerCompleter.isCompleted) {
                   controllerCompleter.complete(controller);

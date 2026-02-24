@@ -23,6 +23,12 @@ class PlaceDto {
   final String? placeTypeSlug;
   final List<String> tagNames;
 
+  static double _toDouble(dynamic v) {
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0.0;
+    return 0.0;
+  }
+
   factory PlaceDto.fromJson(
     Map<String, dynamic> json, {
     List<String> imageUrls = const [],
@@ -34,8 +40,8 @@ class PlaceDto {
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
+      latitude: _toDouble(json['latitude']),
+      longitude: _toDouble(json['longitude']),
       bestSeason: json['best_season'] as String?,
       imageUrls: imageUrls,
       placeTypeName: placeTypeName,
